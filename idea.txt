@@ -1,0 +1,88 @@
+
+variable
+constant
+	
+	fixed point
+		
+		Q16.16
+		Q48.16
+	
+	S4 val = 10000 << 16; // Q.16
+	val *= 20;
+	
+	range
+		val, 0, 100000 
+		val2, -30000, 30000
+	
+function
+	
+	argument
+	return
+
+
+operand
+	= assign
+	
+	+ add
+	- sub
+	* mul
+	/ div
+	% mod
+	<< lshift
+	>> rshift
+	| or
+	& and
+	^ xor
+
+	+= add_equal
+	-= sub_equal
+	*= mul_equal
+	/= div_equal
+	%= mod_equal
+	<<= lshift_equal
+	>>= rshift_equal
+	|= or_equal
+	&= and_equal
+	^= xor_equal
+	
+	++ increment
+	-- decrement
+	
+	&& and_and
+	|| or_or
+	
+	== equal
+	!= not_equal
+
+keyword	
+	if
+	else
+	for
+	goto
+	while
+	do while
+	switch
+	continue
+	break
+	case
+	default
+	const
+	return
+	sizeof
+	struct
+	void
+	typedef
+
+type
+	char
+	short
+	int
+	long
+	long long
+	unsigned
+	float
+	double
+
+
+
+http://wate.jp/wp/?p=189
