@@ -14,5 +14,11 @@ static const char* TokenTypeNames[] = {
 
 inline const char* ToString(TokenType t) { return TokenTypeNames[(int)t]; }
 
+struct Token
+{
+	TokenType type;
+	const char* str;
+};
+
 TokenType scan(const char*& p);
 
