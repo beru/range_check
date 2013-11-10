@@ -6,17 +6,18 @@
 struct Parser
 {
 private:
-	Node* newNode(NodeType t) {
+	template <typename T>
+	T* newNode() {
 		AnyNode* nd = nodes++;
-		nd->type = t;
-		return (Node*)nd;
+		nd->type = T::NodeType;
+		return (T*)nd;
 	}
 	BinaryNode* newBinaryNode(
 		const Node* lhs,
 		const Token* op,
 		const Node* rhs
 	) {
-		BinaryNode* bn = (BinaryNode*) newNode(NodeType::Binary);
+		BinaryNode* bn = newNode<BinaryNode>();
 		bn->lhs = lhs;
 		bn->op = op;
 		bn->rhs = rhs;
@@ -25,7 +26,7 @@ private:
 	TokenNode* newTokenNode(
 		const Token* tk
 	) {
-		TokenNode* nd = (TokenNode*) newNode(NodeType::Token);
+		TokenNode* nd = newNode<TokenNode>();
 		nd->token = tk;
 		return nd;
 	}
