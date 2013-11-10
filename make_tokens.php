@@ -18,5 +18,4 @@ foreach ($lines as $line) {
 	printf("\"%s\"\t{ return %s::%s; }\r\n", $str, $prefix, $name);	// re2c
 }
 
-
 ?>

@@ -2,5 +2,5 @@
 
 #include "token.h"
 
-TokenType scan(const char*& p);
+TokenType Scan(const char*& p);
 

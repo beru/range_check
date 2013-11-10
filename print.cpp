@@ -7,17 +7,32 @@
 #include <stdio.h>
 #include <string.h>
 
+static
+size_t slen(const Token* token)
+{
+	return (token+1)->str - token->str;
+}
+
+static
+const char* extractString(const Token* token, char* buff)
+{
+	size_t len = slen(token);
+	memcpy(buff, token->str, len);
+	buff[len] = 0;
+	return buff;
+}
+
 struct Printer
 {
 	void Print(const Token* token) {
 		for (size_t i=0; i<depth; ++i) putchar('\t');
 		printf("%s", ToString(token->type));
-		if (token->type == TokenType::IntegerConstant) {
-			char buff[64];
-			size_t len = (token+1)->str - token->str;
-			memcpy(buff, token->str, len);
-			buff[len] = 0;
-			printf(" %s", buff);
+		char buff[128];
+		switch (token->type) {
+		case TokenType::IntegerConstant:
+		case TokenType::Identifier:
+			printf(" %s", extractString(token, buff));
+			break;
 		}
 		puts("");
 	}
@@ -36,8 +51,34 @@ struct Printer
 		--depth;
 	}
 
+	void Print(const AssignNode* node) {
+		++depth;
+			Print(node->id);
+		--depth;
+		Print(node->op);
+		++depth;
+			Print(node->rhs);
+		--depth;
+	}
+
+	void Print(const DeclareNode* node) {
+		++depth;
+			Print(node->id);
+		--depth;
+		Print(node->type);
+		++depth;
+			Print(node->rhs);
+		--depth;
+	}
+
 	void Print(const Node* node) {
 		switch (node->nodeType) {
+		case NodeType::Declare:
+			Print((DeclareNode*)node);
+			break;
+		case NodeType::Assign:
+			Print((AssignNode*)node);
+			break;
 		case NodeType::Binary:
 			Print((BinaryNode*)node);
 			break;

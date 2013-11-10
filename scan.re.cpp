@@ -4,7 +4,7 @@
 
 #include "scan.h"
 
-TokenType scan(const char*& p)
+TokenType Scan(const char*& p)
 {
 	const char* yymarker;
 initial:
@@ -90,14 +90,14 @@ initial:
 	"]"     { return TokenType::RightSquareBracket; }
 	"{"     { return TokenType::LeftCurlyBracket; }
 	"}"     { return TokenType::RightCurlyBracket; }
+	"S1"    { return TokenType::S1; }
+	"U1"    { return TokenType::U1; }
+	"S2"    { return TokenType::S2; }
+	"U2"    { return TokenType::U2; }
+	"S4"    { return TokenType::S4; }
+	"U4"    { return TokenType::U4; }
 	"S8"    { return TokenType::S8; }
 	"U8"    { return TokenType::U8; }
-	"S16"   { return TokenType::S16; }
-	"U16"   { return TokenType::U16; }
-	"S32"   { return TokenType::S32; }
-	"U32"   { return TokenType::U32; }
-	"S64"   { return TokenType::S64; }
-	"U64"   { return TokenType::U64; }
 	"goto"  { return TokenType::Statement_goto; }
 	"if"    { return TokenType::Statement_if; }
 	"else"  { return TokenType::Statement_else; }
