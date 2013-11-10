@@ -20,5 +20,3 @@ struct Token
 	const char* str;
 };
 
-TokenType scan(const char*& p);
-

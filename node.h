@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lexer.h"
+struct Token;
 
 enum class NodeType
 {
@@ -56,9 +56,3 @@ union AnyNode {
 	BinaryNode binary;
 	ConditionalNode conditional;
 };
-size_t ParseTokens(
-	const Token* ts, const Token* te,
-	AnyNode* nodes,
-	Node** expressions
-);
-

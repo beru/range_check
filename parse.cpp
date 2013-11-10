@@ -1,7 +1,9 @@
 
-#include "parser.h"
+#include "parse.h"
+#include "node.h"
+#include "token.h"
+
 #include "util.h"
-// ((1+3)*4)
 
 struct Parser
 {
@@ -38,14 +40,20 @@ public:
 	Node* expr(const Token*& ts) {
 		Node* pRet = term(ts);
 		while (in(ts->type, TokenType::Add, TokenType::Sub)) {
-			pRet = newBinaryNode(pRet, ts, term(++ts));
+			Node* lhs = pRet;
+			const Token* op = ts;
+			Node* rhs = term(++ts);
+			pRet = newBinaryNode(lhs, op, rhs);
 		}
 		return pRet;
 	}
 	Node* term(const Token*& ts) {
 		Node* pRet = fact(ts);
 		while (in(ts->type, TokenType::Mul, TokenType::Div)) {
-			pRet = newBinaryNode(pRet, ts, fact(++ts));
+			Node* lhs = pRet;
+			const Token* op = ts;
+			Node* rhs = fact(++ts);
+			pRet = newBinaryNode(lhs, op, rhs);
 		}
 		return pRet;
 	}
@@ -73,7 +81,7 @@ public:
 };
 
 
-size_t ParseTokens(
+size_t Parse(
 	const Token* ts, const Token* te,
 	AnyNode* nodes,
 	Node** expressions

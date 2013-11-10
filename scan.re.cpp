@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "lexer.h"
+#include "scan.h"
 
 TokenType scan(const char*& p)
 {
