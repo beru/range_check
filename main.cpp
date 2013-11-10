@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-	const char* buf = "S1 a = (1 + 2 * 3) / (4 + 7 / 3);";
+	const char* buf = "S1 a = (b * 1 + 2 * 3) / (4 + 7 / 3);";
 
 	std::vector<Token> tokens;
 	TokenType tt;

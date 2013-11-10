@@ -104,18 +104,102 @@ public:
 		}
 	}
 	Node* expr(const Token*& ts) {
-		Node* pRet = term(ts);
-		while (in(ts->type, TokenType::Add, TokenType::Sub)) {
+		return conditional(ts);
+	}
+	Node* conditional(const Token*& ts) {
+		Node* pLogicalOr = logicalOr(ts);
+		if (ts->type == TokenType::Question) {
+			++ts;
+			Node* pTrue = expr(ts);
+			if (ts->type == TokenType::Colon) {
+				++ts;
+				Node* pFalse = conditional(ts);
+				ConditionalNode* pCon = newNode<ConditionalNode>();
+				pCon->condition = pLogicalOr;
+				pCon->trueNode = pTrue;
+				pCon->falseNode = pFalse;
+				return pCon;
+			}else {
+				throw "";
+			}
+		}else {
+			return pLogicalOr;
+		}
+	}
+
+	template <TokenType tt>
+	Node* makeNode(
+		Node* (Parser::*func)(const Token*&),
+		const Token*& ts
+	) {
+		Node* pRet = (this->*func)(ts);
+		while (ts->type == tt) {
 			Node* lhs = pRet;
 			const Token* op = ts;
-			Node* rhs = term(++ts);
+			Node* rhs = (this->*func)(++ts);
 			pRet = newBinaryNode(lhs, op, rhs);
 		}
 		return pRet;
 	}
-	Node* term(const Token*& ts) {
+	template <TokenType tt0, TokenType tt1>
+	Node* makeNode(
+		Node* (Parser::*func)(const Token*&),
+		const Token*& ts
+	) {
+		Node* pRet = (this->*func)(ts);
+		while (in(ts->type, tt0, tt1)) {
+			Node* lhs = pRet;
+			const Token* op = ts;
+			Node* rhs = (this->*func)(++ts);
+			pRet = newBinaryNode(lhs, op, rhs);
+		}
+		return pRet;
+	}
+	Node* logicalAnd(const Token*& ts) {
+		return makeNode<TokenType::LogicalAnd>(&Parser::bitwiseOr, ts);
+	}
+	Node* logicalOr(const Token*& ts) {
+		return makeNode<TokenType::LogicalOr>(&Parser::logicalAnd, ts);
+	}
+	Node* bitwiseOr(const Token*& ts) {
+		return makeNode<TokenType::BitwiseOr>(&Parser::bitwiseXor, ts);
+	}
+	Node* bitwiseXor(const Token*& ts) {
+		return makeNode<TokenType::BitwiseXor>(&Parser::bitwiseAnd, ts);
+	}
+	Node* bitwiseAnd(const Token*& ts) {
+		return makeNode<TokenType::BitwiseAnd>(&Parser::equality, ts);
+	}
+	Node* equality(const Token*& ts) {
+		return makeNode<TokenType::Equal, TokenType::NotEqual>(&Parser::relational, ts);
+	}
+	Node* relational(const Token*& ts) {
+		Node* pRet = shift(ts);
+		while (
+			in(
+				ts->type,
+				TokenType::GreaterThan,
+				TokenType::GreaterThanOrEqual,
+				TokenType::LessThan,
+				TokenType::LessThanOrEqual
+			)
+		) {
+			Node* lhs = pRet;
+			const Token* op = ts;
+			Node* rhs = shift(++ts);
+			pRet = newBinaryNode(lhs, op, rhs);
+		}
+		return pRet;
+	}
+	Node* shift(const Token*& ts) {
+		return makeNode<TokenType::LeftShift, TokenType::RightShift>(&Parser::additive, ts);
+	}
+	Node* additive(const Token*& ts) {
+		return makeNode<TokenType::Add, TokenType::Sub>(&Parser::mult, ts);
+	}
+	Node* mult(const Token*& ts) {
 		Node* pRet = fact(ts);
-		while (in(ts->type, TokenType::Mul, TokenType::Div)) {
+		while (in(ts->type, TokenType::Mul, TokenType::Div, TokenType::Mod)) {
 			Node* lhs = pRet;
 			const Token* op = ts;
 			Node* rhs = fact(++ts);
@@ -126,6 +210,7 @@ public:
 	Node* fact(const Token*& ts) {
 		switch (ts->type) {
 		case TokenType::IntegerConstant:
+		case TokenType::Identifier:
 			return newTokenNode(ts++);
 			break;
 		case TokenType::LeftParentthesis:
