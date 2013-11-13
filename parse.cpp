@@ -127,27 +127,14 @@ public:
 		}
 	}
 
-	template <TokenType tt>
+	template <typename... Types>
 	Node* makeNode(
 		Node* (Parser::*func)(const Token*&),
-		const Token*& ts
+		const Token*& ts,
+		Types... tokenTypes
 	) {
 		Node* pRet = (this->*func)(ts);
-		while (ts->type == tt) {
-			Node* lhs = pRet;
-			const Token* op = ts;
-			Node* rhs = (this->*func)(++ts);
-			pRet = newBinaryNode(lhs, op, rhs);
-		}
-		return pRet;
-	}
-	template <TokenType tt0, TokenType tt1>
-	Node* makeNode(
-		Node* (Parser::*func)(const Token*&),
-		const Token*& ts
-	) {
-		Node* pRet = (this->*func)(ts);
-		while (in(ts->type, tt0, tt1)) {
+		while (in(ts->type, tokenTypes...)) {
 			Node* lhs = pRet;
 			const Token* op = ts;
 			Node* rhs = (this->*func)(++ts);
@@ -156,56 +143,56 @@ public:
 		return pRet;
 	}
 	Node* logicalAnd(const Token*& ts) {
-		return makeNode<TokenType::LogicalAnd>(&Parser::bitwiseOr, ts);
+		return makeNode(&Parser::bitwiseOr, ts,
+						TokenType::LogicalAnd);
 	}
 	Node* logicalOr(const Token*& ts) {
-		return makeNode<TokenType::LogicalOr>(&Parser::logicalAnd, ts);
+		return makeNode(&Parser::logicalAnd, ts,
+						TokenType::LogicalOr);
 	}
 	Node* bitwiseOr(const Token*& ts) {
-		return makeNode<TokenType::BitwiseOr>(&Parser::bitwiseXor, ts);
+		return makeNode(&Parser::bitwiseXor, ts,
+						TokenType::BitwiseOr);
 	}
 	Node* bitwiseXor(const Token*& ts) {
-		return makeNode<TokenType::BitwiseXor>(&Parser::bitwiseAnd, ts);
+		return makeNode(&Parser::bitwiseAnd, ts,
+						TokenType::BitwiseXor);
 	}
 	Node* bitwiseAnd(const Token*& ts) {
-		return makeNode<TokenType::BitwiseAnd>(&Parser::equality, ts);
+		return makeNode(&Parser::equality, ts,
+						TokenType::BitwiseAnd);
 	}
 	Node* equality(const Token*& ts) {
-		return makeNode<TokenType::Equal, TokenType::NotEqual>(&Parser::relational, ts);
+		return makeNode(&Parser::relational, ts,
+						TokenType::Equal,
+						TokenType::NotEqual);
 	}
 	Node* relational(const Token*& ts) {
-		Node* pRet = shift(ts);
-		while (
-			in(
-				ts->type,
-				TokenType::GreaterThan,
-				TokenType::GreaterThanOrEqual,
-				TokenType::LessThan,
-				TokenType::LessThanOrEqual
-			)
-		) {
-			Node* lhs = pRet;
-			const Token* op = ts;
-			Node* rhs = shift(++ts);
-			pRet = newBinaryNode(lhs, op, rhs);
-		}
-		return pRet;
+		return makeNode(&Parser::shift, ts,
+						TokenType::GreaterThan,
+						TokenType::GreaterThanOrEqual,
+						TokenType::LessThan,
+						TokenType::LessThanOrEqual
+						);
 	}
 	Node* shift(const Token*& ts) {
-		return makeNode<TokenType::LeftShift, TokenType::RightShift>(&Parser::additive, ts);
+		return makeNode(&Parser::additive, ts,
+						TokenType::LeftShift,
+						TokenType::RightShift
+						);
 	}
 	Node* additive(const Token*& ts) {
-		return makeNode<TokenType::Add, TokenType::Sub>(&Parser::mult, ts);
+		return makeNode(&Parser::mult, ts,
+						TokenType::Add,
+						TokenType::Sub
+						);
 	}
 	Node* mult(const Token*& ts) {
-		Node* pRet = fact(ts);
-		while (in(ts->type, TokenType::Mul, TokenType::Div, TokenType::Mod)) {
-			Node* lhs = pRet;
-			const Token* op = ts;
-			Node* rhs = fact(++ts);
-			pRet = newBinaryNode(lhs, op, rhs);
-		}
-		return pRet;
+		return makeNode(&Parser::fact, ts,
+						TokenType::Mul,
+						TokenType::Div,
+						TokenType::Mod
+						);
 	}
 	Node* fact(const Token*& ts) {
 		switch (ts->type) {
