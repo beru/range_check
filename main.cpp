@@ -6,13 +6,23 @@
 #include "node.h"
 
 #include <vector>
+#include "util.h"
 
 int main(int argc, char* argv[])
 {
-	const char* buf = "S1 a = (b * 1 + 2 * 3) / (4 + 7 / 3);";
+	if (argc < 2) {
+		printf("specify textfile.\n");
+		return 1;
+	}
+	std::vector<char> text;
+	if (!readFile(argv[1], text)) {
+		printf("failed to read file.\n");
+		return 1;
+	}
+
+	const char* buf = &text[0];
 
 	std::vector<Token> tokens;
-	TokenType tt;
 	Token t;
 	do {
 		t.str = buf;
@@ -24,11 +34,14 @@ int main(int argc, char* argv[])
 
 	std::vector<AnyNode> nodes(tokens.size());
 	std::vector<Node*> exps(nodes.size());
-	Parse(
+	size_t cnt = Parse(
 		&tokens[0], &tokens[tokens.size()-1],
 		&nodes[0],
 		&exps[0]
 		);
-	Print(exps[0]);
+	for (size_t i=0; i<cnt; ++i) {
+		Print(exps[i]);
+		puts("\n");
+	}
 }
 

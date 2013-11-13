@@ -54,6 +54,8 @@ public:
 		case TokenType::Identifier:
 			return assign_stmt(ts);
 			break;
+		case TokenType::EOS:
+			return nullptr;
 		default:
 			throw "";
 			break;
@@ -69,6 +71,9 @@ public:
 		switch (ts->type) {
 		case TokenType::Assign:
 			pRet->rhs = expr(++ts);
+			if (ts->type == TokenType::Semicolon) {
+				++ts;
+			}
 			break;
 		case TokenType::Semicolon:
 			pRet->rhs = nullptr;
@@ -226,7 +231,11 @@ size_t Parse(
 {
 	Parser p;
 	p.nodes = nodes;
-	expressions[0] = p.stmt(ts);
-	return 1;
+
+	Node** start = expressions;
+	while (Node* node = p.stmt(ts)) {
+		*expressions++ = node;
+	}
+	return expressions - start;
 }
 
