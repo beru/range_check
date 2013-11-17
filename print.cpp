@@ -35,6 +35,15 @@ struct Printer
 		Print(node->token);
 	}
 
+	void Print(const UnaryNode* node) {
+		++depth;
+			Print(node->lhs);
+		--depth;
+		++depth;
+			Print(node->rhs);
+		--depth;
+	}
+
 	void Print(const BinaryNode* node) {
 		++depth;
 			Print(node->lhs);
@@ -75,6 +84,9 @@ struct Printer
 			break;
 		case NodeType::Binary:
 			Print((BinaryNode*)node);
+			break;
+		case NodeType::Unary:
+			Print((UnaryNode*)node);
 			break;
 		case NodeType::Token:
 			Print((TokenNode*)node);

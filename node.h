@@ -31,9 +31,9 @@ struct AssignNode : public Node {
 	const Node* rhs;
 };
 struct UnaryNode : public Node {
-	static const NodeType NodeType = NodeType::Assign;
-	const Token* lhs;
-	const Token* rhs;
+	static const NodeType NodeType = NodeType::Unary;
+	const Node* lhs;
+	const Node* rhs;
 };
 struct BinaryNode : public Node {
 	static const NodeType NodeType = NodeType::Binary;

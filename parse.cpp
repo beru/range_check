@@ -49,31 +49,50 @@ public:
 		case TokenType::U2:
 		case TokenType::U4:
 		case TokenType::U8:
-			return declare_stmt(ts);
+			return declare(ts);
 			break;
 		case TokenType::Identifier:
-			return assign_stmt(ts);
+			switch ((ts+1)->type) {
+			case TokenType::Increment:
+			case TokenType::Decrement:
+				return expr_stmt(ts);
+			default:
+				return assign(ts);
+			}
+			break;
+		default:
+			return expr_stmt(ts);
 			break;
 		case TokenType::EndOfString:
-		default:
 			return nullptr;
 //			throw "";
 			break;
 		}
 	}
-	Node* declare_stmt(const Token*& ts) {
+	Node* expr_stmt(const Token*& ts) {
+		while (ts->type == TokenType::Semicolon) {
+			++ts;
+		}
+		Node* ret = expr(ts);
+		if (ts->type != TokenType::Semicolon) {
+			throw "semicolon needed";
+		}
+		++ts;
+		return ret;
+	}
+	Node* expr(const Token*& ts) {
+		return conditional(ts);
+	}
+	Node* declare(const Token*& ts) {
 		DeclareNode* pRet = newNode<DeclareNode>();
 		pRet->type = ts++;
 		if (ts->type != TokenType::Identifier) {
-			throw "";
+			throw "identifier not found";
 		}
 		pRet->id = ts++;
 		switch (ts->type) {
 		case TokenType::Assign:
-			pRet->rhs = expr(++ts);
-			if (ts->type == TokenType::Semicolon) {
-				++ts;
-			}
+			pRet->rhs = expr_stmt(++ts);
 			break;
 		case TokenType::Semicolon:
 			pRet->rhs = nullptr;
@@ -84,7 +103,7 @@ public:
 		}
 		return pRet;
 	}
-	Node* assign_stmt(const Token*& ts) {
+	Node* assign(const Token*& ts) {
 		AssignNode* pRet = newNode<AssignNode>();
 		pRet->id = ts++;
 		switch (ts->type) {
@@ -100,19 +119,13 @@ public:
 		case TokenType::XorAssign:
 		case TokenType::OrAssign:
 			pRet->op = ts++;
-			pRet->rhs = expr(ts);
-			if (ts->type == TokenType::Semicolon) {
-				++ts;
-			}
+			pRet->rhs = expr_stmt(ts);
 			return pRet;
 			break;
 		default:
 			throw "";
 			break;
 		}
-	}
-	Node* expr(const Token*& ts) {
-		return conditional(ts);
 	}
 	Node* conditional(const Token*& ts) {
 		Node* pLogicalOr = logicalOr(ts);
@@ -196,13 +209,43 @@ public:
 						);
 	}
 	Node* mult(const Token*& ts) {
-		return makeNode(&Parser::fact, ts,
+		return makeNode(&Parser::unary, ts,
 						TokenType::Mul,
 						TokenType::Div,
 						TokenType::Mod
 						);
 	}
-	Node* fact(const Token*& ts) {
+	Node* unary(const Token*& ts) {
+		switch (ts->type) {
+		case TokenType::Add:
+		case TokenType::Sub:
+		case TokenType::Increment:
+		case TokenType::Decrement:
+			{
+				UnaryNode* u = newNode<UnaryNode>();
+				u->lhs = newTokenNode(ts++);
+				u->rhs = unary(ts);
+				return u;
+			}
+			break;
+		default:
+			return postfix(ts);
+		}
+	}
+
+	Node* postfix(const Token*& ts) {
+		Node* nd = primary(ts);
+		if (in(ts->type, TokenType::Increment, TokenType::Decrement)) {
+			UnaryNode* u = newNode<UnaryNode>();
+			u->lhs = nd;
+			u->rhs = newTokenNode(ts++);
+			return u;
+		}else {
+			return nd;
+		}
+	}
+
+	Node* primary(const Token*& ts) {
 		switch (ts->type) {
 		case TokenType::IntegerConstant:
 		case TokenType::Identifier:

@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <stdint.h>
 
 #include "node.h"
 #include "token.h"
@@ -15,8 +16,15 @@ struct Identifier
 	unsigned char byteSize;
 
 	union {
+		uint8_t u1;
+		uint16_t u2;
+		uint32_t u4;
+		uint64_t u8;
 
-
+		int8_t s1;
+		int16_t s2;
+		int32_t s4;
+		int64_t s8;
 	} value;
 
 	const Token* type;
@@ -72,6 +80,11 @@ struct Verifier
 		Verify(node->rhs);
 	}
 
+	void Verify(const UnaryNode* node) {
+		Verify(node->lhs);
+		Verify(node->rhs);
+	}
+
 	void Verify(const TokenNode* node) {
 		if (node->token->type == TokenType::Identifier) {
 			char buff[256];
@@ -90,6 +103,9 @@ struct Verifier
 			break;
 		case NodeType::Binary:
 			Verify((BinaryNode*)node);
+			break;
+		case NodeType::Unary:
+			Verify((UnaryNode*)node);
 			break;
 		case NodeType::Token:
 			Verify((TokenNode*)node);
