@@ -20,3 +20,11 @@ struct Token
 	const char* str;
 };
 
+inline
+size_t slen(const Token* token)
+{
+	return (token+1)->str - token->str;
+}
+
+const char* ExtractString(const Token* token, char* buff);
+

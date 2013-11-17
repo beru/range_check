@@ -4,10 +4,13 @@
 
 #include "scan.h"
 
-TokenType Scan(const char*& p)
+TokenType Scan(const char*& p, const char* eos)
 {
 	const char* yymarker;
 initial:
+	if (p == eos) {
+		return TokenType::EndOfString;
+	}
 /*!re2c
 	re2c:define:YYCTYPE  = "unsigned char";
 	re2c:define:YYCURSOR = p;
@@ -45,9 +48,11 @@ initial:
 		(LongLongSuffix UnsignedSuffix?);
 		
 	IntegerConstant = (DecimalConstant | OctalConstant | HexadecimalConstant) IntegerSuffix?;
+	WhiteSpace = [ \t\v\f\r\n]+;
 	
 	other = .;
 	
+	"\000"  { return TokenType::EndOfString; }
 	"+"     { return TokenType::Add; }
 	"-"     { return TokenType::Sub; }
 	"*"     { return TokenType::Mul; }
@@ -113,16 +118,12 @@ initial:
 	"struct"        { return TokenType::Statement_struct; }
 	"void"  { return TokenType::Statement_void; }
 	"typedef"       { return TokenType::Statement_typedef; }
-	"\000"  { return TokenType::EOS; }
+	
+	WhiteSpace    { return TokenType::WhiteSpace; }
 	IntegerConstant       { return TokenType::IntegerConstant; }
 	Identifier    { return TokenType::Identifier; }
-	
-	[ \t\v\f]+
-		{goto initial;}
-	"\n"
-		{goto initial;}
+
 	other {
-		printf("unexpected character\n");
 		goto initial;
 	}
 */

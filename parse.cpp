@@ -54,10 +54,10 @@ public:
 		case TokenType::Identifier:
 			return assign_stmt(ts);
 			break;
-		case TokenType::EOS:
-			return nullptr;
+		case TokenType::EndOfString:
 		default:
-			throw "";
+			return nullptr;
+//			throw "";
 			break;
 		}
 	}
@@ -101,6 +101,9 @@ public:
 		case TokenType::OrAssign:
 			pRet->op = ts++;
 			pRet->rhs = expr(ts);
+			if (ts->type == TokenType::Semicolon) {
+				++ts;
+			}
 			return pRet;
 			break;
 		default:

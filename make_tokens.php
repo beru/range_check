@@ -14,8 +14,8 @@ foreach ($lines as $line) {
 	$cols = str_getcsv($line);
 	$name = $cols[0];
 	$str = strlen($cols[1]) ? $cols[1] : $cols[0];
-//	printf("\tD(%s) \\\r\n", $name);	// enum entry
-	printf("\"%s\"\t{ return %s::%s; }\r\n", $str, $prefix, $name);	// re2c
+	printf("\tD(%s) \\\r\n", $name);	// enum entry
+//	printf("\"%s\"\t{ return %s::%s; }\r\n", $str, $prefix, $name);	// re2c
 }
 
 ?>

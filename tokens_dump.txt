@@ -1,4 +1,5 @@
-    D(EOS) \
+    D(EndOfString) \
+    D(WhiteSpace) \
     D(IntegerConstant) \
     D(Identifier) \
     D(Add) \
@@ -66,3 +67,4 @@
     D(Statement_struct) \
     D(Statement_void) \
     D(Statement_typedef) \
+    

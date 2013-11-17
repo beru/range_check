@@ -1,4 +1,5 @@
-EOS,\000
+EndOfString,\000
+WhiteSpace,
 IntegerConstant,
 Identifier,
 Add,+

@@ -4,8 +4,10 @@
 #include "parse.h"
 #include "print.h"
 #include "node.h"
+#include "verify.h"
 
 #include <vector>
+#include <map>
 #include "util.h"
 
 int main(int argc, char* argv[])
@@ -26,10 +28,13 @@ int main(int argc, char* argv[])
 	Token t;
 	do {
 		t.str = buf;
-		t.type = Scan(buf);
+		t.type = Scan(buf, buf+text.size());
+		if (t.type == TokenType::WhiteSpace) {
+			continue;
+		}
 		tokens.push_back(t);
 		printf("%s\n", ToString(t.type));
-	} while (t.type != TokenType::EOS);
+	}while (t.type != TokenType::EndOfString);
 	puts("\n");
 
 	std::vector<AnyNode> nodes(tokens.size());
@@ -43,5 +48,7 @@ int main(int argc, char* argv[])
 		Print(exps[i]);
 		puts("\n");
 	}
+
+	Verify(&exps[0], exps.size());
 }
 

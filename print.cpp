@@ -8,12 +8,6 @@
 #include <string.h>
 
 static
-size_t slen(const Token* token)
-{
-	return (token+1)->str - token->str;
-}
-
-static
 const char* extractString(const Token* token, char* buff)
 {
 	size_t len = slen(token);
