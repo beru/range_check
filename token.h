@@ -18,13 +18,8 @@ struct Token
 {
 	TokenType type;
 	const char* str;
+	size_t len;
 };
-
-inline
-size_t slen(const Token* token)
-{
-	return (token+1)->str - token->str;
-}
 
 const char* ExtractString(const Token* token, char* buff);
 

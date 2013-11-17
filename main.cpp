@@ -26,14 +26,17 @@ int main(int argc, char* argv[])
 
 	std::vector<Token> tokens;
 	Token t;
+	const char* ps = 0;
 	do {
 		t.str = buf;
 		t.type = Scan(buf, buf+text.size());
-		if (t.type == TokenType::WhiteSpace) {
-			continue;
+		if (tokens.size())
+			tokens.back().len = t.str - ps;
+		ps = t.str;
+		if (t.type != TokenType::WhiteSpace) {
+			tokens.push_back(t);
+			printf("%s\n", ToString(t.type));
 		}
-		tokens.push_back(t);
-		printf("%s\n", ToString(t.type));
 	}while (t.type != TokenType::EndOfString);
 	puts("\n");
 

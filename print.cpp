@@ -10,9 +10,8 @@
 static
 const char* extractString(const Token* token, char* buff)
 {
-	size_t len = slen(token);
-	memcpy(buff, token->str, len);
-	buff[len] = 0;
+	memcpy(buff, token->str, token->len);
+	buff[token->len] = 0;
 	return buff;
 }
 

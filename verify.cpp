@@ -33,20 +33,16 @@ struct Identifier
 
 struct Verifier
 {
-	bool verifyIdentifier(const char* id, bool regist) {
-		if (regist) {
-			if (ids.find(id) != ids.end()) {
-				errors.push_back("id overlap");
-				return false;
-			}
-		}else {
-			if (ids.find(id) == ids.end()) {
-				errors.push_back("id not registered");
-				return false;
-			}
-
+	bool findId(const char* id) {
+		if (ids.find(id) != ids.end()) {
+			return true;
 		}
-		return true;
+		return false;
+	}
+	bool findId(const Token* id) {
+		char buff[256];
+		ExtractString(id, buff);
+		return findId(buff);
 	}
 
 	void Verify(const DeclareNode* node) {
@@ -59,19 +55,20 @@ struct Verifier
 		id.id = node->id;
 		char buff[256];
 		ExtractString(node->id, buff);
-		if (verifyIdentifier(buff, true)) {
+		if (!findId(buff)) {
 			ids[buff] = id;
+		}else {
+			errors.push_back("id overlap");
 		}
-
 		if (node->rhs) {
 			Verify(node->rhs);
 		}
 	}
 
 	void Verify(const AssignNode* node) {
-		char buff[256];
-		ExtractString(node->id, buff);
-		verifyIdentifier(buff, false);
+		if (!findId(node->id)) {
+			errors.push_back("id not found");
+		}
 		Verify(node->rhs);
 	}
 
@@ -87,9 +84,9 @@ struct Verifier
 
 	void Verify(const TokenNode* node) {
 		if (node->token->type == TokenType::Identifier) {
-			char buff[256];
-			ExtractString(node->token, buff);
-			verifyIdentifier(buff, false);
+			if (!findId(node->token)) {
+				errors.push_back("id not found");
+			}
 		}
 	}
 
