@@ -7,26 +7,18 @@
 
 #include "node.h"
 #include "token.h"
+#include "value.h"
 
 struct Identifier
 {
 	bool isConstant;
 	bool isPointer;
+	bool isArray;
 	bool isSigned;
 	bool isFunction;
 	unsigned char byteSize;
 
-	union {
-		uint8_t u1;
-		uint16_t u2;
-		uint32_t u4;
-		uint64_t u8;
-
-		int8_t s1;
-		int16_t s2;
-		int32_t s4;
-		int64_t s8;
-	} value;
+	Value value;
 
 	const Token* type;
 	const Token* id;
@@ -40,13 +32,14 @@ struct Verifier
 		}
 		return false;
 	}
+
 	bool findId(const Token* id) {
 		char buff[256];
 		ExtractString(id, buff);
 		return findId(buff);
 	}
 
-	void Verify(const DeclareNode* node) {
+	Value Verify(const DeclareNode* node) {
 
 		Identifier id;
 		id.isConstant = false;
@@ -61,54 +54,118 @@ struct Verifier
 		}else {
 			errors.push_back("id overlap");
 		}
+		Value& lhs = getValue(node->id);
 		if (node->rhs) {
-			Verify(node->rhs);
+			Value rhs = Verify(node->rhs);
+			lhs = rhs;
 		}
+		return lhs;
 	}
 
-	void Verify(const AssignNode* node) {
+	Value Verify(const AssignNode* node) {
 		if (!findId(node->id)) {
 			errors.push_back("id not found");
 		}
-		Verify(node->rhs);
+		Value& lhs = getValue(node->id);
+		Value rhs = Verify(node->rhs);
+		switch (node->op->type) {
+		case TokenType::AddAssign:
+			return lhs += rhs;
+			break;
+		case TokenType::SubAssign:
+			return lhs -= rhs;
+			break;
+		case TokenType::MulAssign:
+			return lhs *= rhs;
+			break;
+		case TokenType::DivAssign:
+			return lhs /= rhs;
+			break;
+		case TokenType::RightShiftAssign:
+			return lhs >>= rhs;
+			break;
+		case TokenType::LeftShiftAssign:
+			return lhs <<= rhs;
+			break;
+		}
 	}
 
-	void Verify(const BinaryNode* node) {
-		Verify(node->lhs);
-		Verify(node->rhs);
+	Value Verify(const BinaryNode* node) {
+		Value lhs = Verify(node->lhs);
+		Value rhs = Verify(node->rhs);
+		switch (node->op->type) {
+		case TokenType::Add:
+			return lhs + rhs;
+			break;
+		case TokenType::Sub:
+			return lhs - rhs;
+			break;
+		case TokenType::Mul:
+			return lhs * rhs;
+			break;
+		case TokenType::Div:
+			return lhs / rhs;
+			break;
+		case TokenType::RightShift:
+			return lhs >> rhs;
+			break;
+		case TokenType::LeftShift:
+			return lhs << rhs;
+			break;
+		}
 	}
 
-	void Verify(const UnaryNode* node) {
-		Verify(node->lhs);
-		Verify(node->rhs);
+	Value Verify(const UnaryNode* node) {
+		Value lhs = Verify(node->lhs);
+		Value rhs = Verify(node->rhs);
+		// TODO: rewrite..
+		return lhs;
 	}
 
-	void Verify(const TokenNode* node) {
-		if (node->token->type == TokenType::Identifier) {
+	Value Verify(const TokenNode* node) {
+		switch (node->token->type) {
+		case TokenType::Identifier:
 			if (!findId(node->token)) {
 				errors.push_back("id not found");
 			}
+			return getValue(node->token);
+			break;
+		case TokenType::IntegerConstant:
+			{
+				char buff[256];
+				Value v;
+				v.s8 = atoll(ExtractString(node->token, buff));
+				return v;
+			}
+			break;
 		}
 	}
 
-	void Verify(const Node* node) {
+	Value Verify(const Node* node) {
 		switch (node->nodeType) {
 		case NodeType::Declare:
-			Verify((DeclareNode*)node);
+			return Verify((DeclareNode*)node);
 			break;
 		case NodeType::Assign:
-			Verify((AssignNode*)node);
+			return Verify((AssignNode*)node);
 			break;
 		case NodeType::Binary:
-			Verify((BinaryNode*)node);
+			return Verify((BinaryNode*)node);
 			break;
 		case NodeType::Unary:
-			Verify((UnaryNode*)node);
+			return Verify((UnaryNode*)node);
 			break;
 		case NodeType::Token:
-			Verify((TokenNode*)node);
+			return Verify((TokenNode*)node);
 			break;
 		}
+	}
+
+	Value& getValue(const Token* id) {
+		char buff[256];
+		ExtractString(id, buff);
+		Identifier& identifier = ids[buff];
+		return identifier.value;
 	}
 
 	std::map<std::string, Identifier> ids;
