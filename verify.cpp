@@ -13,6 +13,7 @@ struct Identifier
 	bool isConstant;
 	bool isPointer;
 	bool isSigned;
+	bool isFunction;
 	unsigned char byteSize;
 
 	union {
