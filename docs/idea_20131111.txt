@@ -1,0 +1,228 @@
+
+演算処理は大体のケースで二者間で行われる。レジスタ間なので。
+
+符号の有り無しで処理が分かれる
+
+C = constant
+.t = top
+.b = bottom
+
+Add
+Sub
+
+	z = x + C
+	z.t = x.t + C
+	z.b = x.b + C
+
+	z = x + y
+	z.t = x.t + y.t
+	z.b = x.b + y.b
+
+Mul
+
+	z = x * C
+	if x.b >= 0 // x.t >= 0
+		if C >= 0
+			z.t = x.t * C
+			z.b = x.b * C
+		else
+			z.t = x.b * C
+			z.b = x.t * C
+		
+	else // x.b < 0
+		if x.t >= 0
+			if C >= 0
+				z.t = x.t * C
+				z.b = x.b * C
+			else
+				z.t = x.b * C
+				z.b = x.t * C
+		else // x.t < 0
+			if C >= 0
+				z.t = x.t * C
+				z.b = x.b * C
+			else
+				z.t = x.b * C
+				z.b = x.t * C
+				
+	↓
+	
+	if C >= 0
+		z.t = x.t * C
+		z.b = x.b * C
+	else
+		z.t = x.b * C
+		z.b = x.t * C
+	
+	
+	z = x * y
+	if x.b >= 0
+		if y.b >= 0
+			z.t = x.t * y.t
+			z.b = x.b * y.b
+		else
+			if y.t >= 0
+				z.t = x.t * y.t
+			else
+				z.t = x.b * y.t
+			z.b = x.t * y.b
+	else
+		if x.t >= 0
+			if y.b >= 0
+				z.t = x.t * y.t
+				z.b = x.b * y.t
+			else
+				if y.t >= 0
+					z.t = max(x.t * y.t, x.b * y.b)
+					z.b = min(x.t * y.b, x.b * y.t)
+				else
+					z.t = x.b * y.b
+					z.b = x.t * y.b
+		else
+			if y.b >= 0
+				z.t = x.t * y.b
+				z.b = x.b * y.t
+			else
+				if y.t >= 0
+					z.t = x.t * y.b
+					z.b = x.b * y.t
+				else
+					z.t = x.b * y.b
+					z.b = x.t * y.t
+
+Div
+
+	z = x / C
+	if x.b >= 0 // x.t >= 0
+		if C >= 0
+			z.t = x.t / C
+			z.b = x.b / C
+		else
+			z.t = x.b / C
+			z.b = x.t / C
+			
+	else // x.b < 0
+		if x.t >= 0
+			if C >= 0
+				z.t = x.t / C
+				z.b = x.b / C
+			else
+				z.t = x.b / C
+				z.b = x.t / C
+		else // x.t < 0
+			if C >= 0
+				z.t = x.t / C
+				z.b = x.b / C
+			else
+				z.t = x.b / C
+				z.b = x.t / C
+	
+	↓
+	
+	if C >= 0
+		z.t = x.t / C
+		z.b = x.b / C
+	else
+		z.t = x.b / C
+		z.b = x.t / C
+	
+	z = x / y
+	
+	if y.t == 0 || y.b == 0
+		warning! possible zero division
+	
+	if y.t == 0 && y.b == 0
+		error
+	else if x.t == 0 && x.b == 0
+		z.t = z.b = 0
+	
+	else if x.b == 0
+		if y.b == 0
+			z.t = x.t								// x.t / 1
+			z.b = 0
+		else if y.b > 0
+			z.t = x.t / y.b
+			z.b = 0
+		else // y.b < 0
+			if y.t == 0
+				z.t = 0
+				z.b = -x.t							// x.t / -1
+			else if y.t > 0
+				z.t = x.t							// x.t / 1
+				z.b = -x.t							// x.t / -1
+			else // y.t < 0
+				z.t = 0
+				z.b = x.t / y.t
+		
+	else if x.b > 0
+		if y.b == 0
+			z.t = x.t								// x.t / 1
+			z.b = x.b								// x.b / 1
+		else if y.b > 0
+			z.t = x.t / y.b
+			z.b = x.b / y.t
+		else // y.b < 0
+			if y.t == 0
+				z.t = x.b / y.b
+				z.b = -x.t							// x.t / 1
+			else if y.t > 0
+				z.t = x.t							// x.t / 1
+				z.b = -x.t							// x.t / -1
+			else // y.t < 0
+				z.t = x.b / y.t
+				z.b = x.t / y.t
+				
+	else // x.b < 0
+		if x.t == 0
+			if y.b == 0
+				z.t = 0
+				z.b = x.b
+			else if y.b > 0
+				z.t = 0
+				z.b = x.b / y.b
+			else // if y.b < 0
+				if y.t == 0
+					z.t = -x.b						// x.b / -1
+					z.b = 0							// x.t / y
+				else if y.t > 0
+					z.t = -x.b						// x.b / -1
+					z.b = x.b						// x.b / 1
+				else // y.t < 0
+					z.t = x.b / y.t
+					z.b = 0
+		if x.t > 0
+			if y.b == 0
+				z.t = x.t							// x.t / 1
+				z.b = x.b							// x.b / 1
+			else if y.b > 0
+				z.t = x.t / y.b
+				z.b = x.b / y.b
+			else // if y.b < 0
+				if y.t == 0
+					z.t = -x.b
+					z.b = -x.t						// x.t / -1
+				else if y.t > 0
+					z.t = max(x.t, -x.b)			// max(x.t / 1, x.b / -1)
+					z.b = min(-x.t, x.b)			// min(x.t / -1, x.b / 1)
+				else // y.t < 0
+					z.t = x.b / y.t
+					z.b = x.t / y.t
+		else // if x.t < 0
+			if y.b == 0
+				z.t = x.t
+				z.b = x.b
+			else if y.b > 0
+				z.t = x.t / y.t
+				z.b = x.b / y.b
+			else // if y.b < 0
+				if y.t == 0
+					z.t = -x.b
+					z.b = x.t
+				else if y.t > 0
+					z.t = -x.b						// x.b / -1
+					z.b = x.b
+				else // if y.t < 0
+					z.t = x.b / y.t
+					z.b = x.t / y.b
+		
+		

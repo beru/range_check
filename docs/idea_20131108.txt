@@ -1,0 +1,99 @@
+
+式は分割する事が出来る。
+
+加算と減算の単位で独立して考慮する事が可能
+
+例：
+	(a << 4) + (b << 4)
+	(a << 4) - (b << 4)
+
+分割した後の最小値と最大値を求める
+式が分割される場合、最小値と最大値も加減算が可能。
+
+イメージ的には変数の取りうる範囲でグラフを描いていけば、関数の最小値と最大値が視覚化出来るが。。
+
+乗算と除算に関しても、独立して範囲を求めた後に合成が可能
+
+例：
+	(a << 4) * (b << 4)
+	(a << 4) / (b << 4)
+
+---------
+
+それぞれの計算箇所毎に最大何ビットまで使うかを出していって、それが型のサイズを超えている場合にエラーとする。
+視覚化も行う。
+
+
+例：
+
+int func(int a, int b, int c, int d)
+{
+	if (a + b < c / d) {
+		return a * b;
+	}else {
+		return a / b;
+	}
+}
+
+a :   -50 ～ 2000		11/32
+b :     0 ～ 1000		10/32
+c :   100 ～ 200		 8/32
+d : -1000 ～ 1000		10/32
+
+int func(int a, int b, int c, int d)
+{
+	if (
+		a + b				// -50 ～ 3000		12/32
+		  <
+		c / d				// -200 ～ 200		8/32
+							// warning: divide by zero
+							// warning: divide zero
+							// warning: possible loss of fraction (numerator is smaller than denominator)
+	) {
+		return a * b;		// -50000 ～ 2000000	20/32
+	}else {
+		return a / b;		// -50 ～ 2000		12/32
+							// warning: divide by zero
+							// warning: divide zero
+							// warning: possible loss of fraction (numerator is smaller than denominator)
+	}
+}
+
+
+---------
+
+分岐が有る場合は算出するケースが増える。
+それぞれのケースでの結果を出した上で、最小値と最大値を求めるような単純なやり方でうまくいくだろうか？
+
+例：
+int func(int a, int b, int c, int d)
+{
+	if (a + b < c / d) {
+		return a * b;
+	}else {
+		return a / b;
+	}
+}
+
+この場合は入力値の範囲内での式の到達箇所を求めて、その範囲内でオーバーフロー等が無いかを確認する。
+
+----------
+
+使っている変数の上書きが有りうるので、別変数への置き換え等をした方が単純になるかも。
+
+int func(int a, int b, int c, int d)
+{
+	b = a * d * 1 / c;
+	a = (b * 100 + c << 10) / d;
+	return a + b;
+}
+
+↓
+
+int func(int a, int b, int c, int d)
+{
+	int b2 = a * d * 1 / c;
+	int a2 = (b2 * 100 + c << 10) / d;
+	return a2 + b;
+}
+

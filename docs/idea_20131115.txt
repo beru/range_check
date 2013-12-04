@@ -1,0 +1,24 @@
+ARM Assembly A Fast Hi Precision Fixed Point Divide
+http://me.henri.net/fp-div.html
+
+Optimizing integer divisions with Multiply Shift in C#
+http://www.codeproject.com/Articles/17480/Optimizing-integer-divisions-with-Multiply-Shift-i
+
+Fast, Faster, Fastest Code: Integer division
+http://forums.parallax.com/showthread.php/114807-Fast-Faster-Fastest-Code-Integer-division
+
+Computing the Multiplicative Inverse for Optimizing Integer Division
+http://www.flounder.com/multiplicative_inverse.htm
+
+How can I use bit shifting to replace integer division
+http://stackoverflow.com/questions/3850665/how-can-i-use-bit-shifting-to-replace-integer-division
+
+Faster integer division when denominator is known?
+http://stackoverflow.com/questions/2616072/faster-integer-division-when-denominator-is-known
+
+gcc intrinsic for extended division/multiplication
+http://stackoverflow.com/questions/13187629/gcc-intrinsic-for-extended-division-multiplication
+
+Xbyak - x86, x64 JIT assembler -
+http://homepage1.nifty.com/herumi/soft/xbyak.html
+

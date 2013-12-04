@@ -1,0 +1,54 @@
+
+http://www.kijineko.co.jp/tech/creintro/size-of-int.html
+
+http://www.kijineko.co.jp/tech/superstitions/division-by-pow2-is-shift-right.html
+
+シンボル
+	
+	isConstant
+	
+	名前
+	
+	型
+		isSigned
+		
+	現在値
+	
+	Range
+		Top
+		Bottom
+
+シンボルテーブル
+
+同名の変数が宣言されていないか？
+
+まだ宣言されていない変数に代入していないか？
+
+const指定
+
+スコープ演算子
+	
+	同名の変数宣言の場合、内側を優先的に使う？
+
+型変換
+
+	キャスト演算子
+
+	整数拡張 暗黙の型変換：数値型の昇格
+	
+組み込み関数
+	
+	abs
+	sqrt
+	sin
+	cos
+	tan
+
+処理系対応
+
+	アーキテクチャ
+
+	16bit
+	32bit
+	64bit
+	
