@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>B:\libs\pegtl-0.32\include;B:\libs\boost_1_53_0;$(IncludePath)</IncludePath>
+    <IncludePath>B:\libs\pegtl-0.32\include;C:\libs\boost_1_55_0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -82,6 +82,7 @@
     <ClCompile Include="..\print.cpp" />
     <ClCompile Include="..\scan.cpp" />
     <ClCompile Include="..\token.cpp" />
+    <ClCompile Include="..\value.cpp" />
     <ClCompile Include="..\verify.cpp" />
   </ItemGroup>
   <ItemGroup>

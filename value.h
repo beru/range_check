@@ -1,23 +1,13 @@
 #pragma once
 
-struct ValueProxy
+#include <stdint.h>
+
+struct ValueBase;
+
+struct Value
 {
-	virtual bool operator < (const ValueProxy& rhs);
-	virtual bool operator > (const ValueProxy& rhs);
-};
-
-template <typename T>
-struct ValueTemplate : public ValueProxy
-{
-	T v;
-
-	virtual bool operator < (const ValueProxy& rhs) { return rhs > v; }
-	virtual bool operator > (const ValueProxy& rhs) { return rhs < v; }
-};
-
-struct Value {
-
 	union {
+		char c;
 		unsigned char uc;
 		unsigned short us;
 		unsigned int ui;
@@ -30,179 +20,91 @@ struct Value {
 		signed long sl;
 		signed long long sll;
 
-		float f;
-		double d;
+//		float f;
+//		double d;
 	};
+	
 	enum class Type : int {
-		UC = 0,
-		US = 2,
-		UI = 4,
-		UL = 8,
-		ULL= 16,
-		SC = 1,
-		SS = 3,
-		SI = 5,
-		SL = 9,
-		SLL = 17,
+		uc = 0,
+		us = 2,
+		ui = 4,
+		ul = 8,
+		ull= 16,
+
+		sc = 1,
+		ss = 3,
+		si = 5,
+		sl = 9,
+		sll = 17,
+
+//		fl = 32,
+//		db = 64,
 	} type;
 
-	bool isSigned() const {
-		return (int)type & 1;
-	}
-	void setSigned() {
-		type = (Type) ((int)type | 1);
-	}
-
-	template <typename T>
-	void get(T& v) {
-		switch (type) {
-		case Type::UC:
-			v = uc;
-			break;
-		case Type::US:
-			v = us;
-			break;
-		case Type::UI:
-			v = ui;
-			break;
-		case Type::UL:
-			v = ul;
-			break;
-		case Type::ULL:
-			v = ull;
-			break;
-		case Type::SC:
-			v = sc;
-			break;
-		case Type::SS:
-			v = ss;
-			break;
-		case Type::SI:
-			v = si;
-			break;
-		case Type::SL:
-			v = sl;
-			break;
-		case Type::SLL:
-			v = sll;
-			break;
-		}
+	Value()
+		:
+		type(Value::Type::si)
+	{
 	}
 
-	void promote() {
-		if (isSigned()) {
-			if (type < Type::SI) {
-				get(si);
-				type = Type::SI;
-			}else {
-				get(sll);
-				type = Type::SLL;
-			}
-		}else {
-			if (type < Type::UI) {
-				get(ui);
-				type = Type::UI;
-			}else {
-				get(ull);
-				type = Type::ULL;
-			}
-		}
+	Value(Type t)
+		:
+		type(t)
+	{
 	}
 
-	Value operator - () {
-		Value ret = *this;
-		ret.promote();
-		ret.setSigned();
-		switch (ret.type) {
-		case Type::SI:
-			ret.si = -ret.si;
-			break;
-		case Type::SLL:
-			ret.sll = -ret.sll;
-			break;
-		}
-		return ret;
-	}
+	Value(const Value& v)
+		:
+		type(v.type),
+		ull(v.ull)
+	{}
 
-	bool operator < (const Value& rhs) {
-		
-		return s8 < rhs.s8;
-	}
+	Value& operator = (uint64_t rhs);
+	Value& operator = (uint32_t rhs);
+	Value& operator = (uint16_t rhs);
+	Value& operator = (uint8_t rhs);
+	Value& operator = (int64_t rhs);
+	Value& operator = (int32_t rhs);
+	Value& operator = (int16_t rhs);
+	Value& operator = (int8_t rhs);
 
-	bool operator == (const Value& rhs) {
-		return s8 == rhs.s8;
-	}
+	Value Cast(Type nt);
 
-	Value& operator += (const Value& rhs) {
-		s8 += rhs.s8;
-		return *this;
-	}
-	
-	Value& operator -= (const Value& rhs) {
-		s8 -= rhs.s8;
-		return *this;
-	}
+	Value& operator = (Value rhs);		// a = b
+	Value operator - (void);			// -a
 
-	Value& operator *= (const Value& rhs) {
-		s8 *= rhs.s8;
-		return *this;
-	}
+	Value& operator += (Value rhs);		// a += b
+	Value& operator -= (Value rhs);		// a -= b
+	Value& operator *= (Value rhs);		// a *= b
+	Value& operator /= (Value rhs);		// a /= b
+	Value& operator %= (Value rhs);		// a %= b
+	Value& operator |= (Value rhs);		// a |= b
+	Value& operator &= (Value rhs);		// a &= b
+	Value& operator ^= (Value rhs);		// a ^= b
+	Value& operator <<= (Value rhs);	// a <<= b
+	Value& operator >>= (Value rhs);	// a >>= b
+	Value& operator ++ (void);			// ++a
+	Value operator ++ (int);			// a++
+	Value& operator -- (void);			// --a
+	Value operator -- (int);			// a--
 
-	Value& operator /= (const Value& rhs) {
-		s8 /= rhs.s8;
-		return *this;
-	}
+	Value operator + (Value rhs);		// a + b
+	Value operator - (Value rhs);		// a - b
+	Value operator * (Value rhs);		// a * b
+	Value operator / (Value rhs);		// a / b
+	Value operator % (Value rhs);		// a % b
+	Value operator | (Value rhs);		// a | b
+	Value operator & (Value rhs);		// a & b
+	Value operator ^ (Value rhs);		// a ^ b
+	Value operator << (Value rhs);		// a << b
+	Value operator >> (Value rhs);		// a >> b
 
-	Value& operator %= (const Value& rhs) {
-		s8 %= rhs.s8;
-		return *this;
-	}
-
-	Value& operator |= (const Value& rhs) {
-		s8 |= rhs.s8;
-		return *this;
-	}
-
-	Value& operator &= (const Value& rhs) {
-		s8 &= rhs.s8;
-		return *this;
-	}
-
-	Value& operator ^= (const Value& rhs) {
-		s8 ^= rhs.s8;
-		return *this;
-	}
-
-	Value& operator <<= (const Value& rhs) {
-		s8 <<= rhs.s8;
-		return *this;
-	}
-
-	Value& operator >>= (const Value& rhs) {
-		s8 >>= rhs.s8;
-		return *this;
-	}
-
-	Value& operator ++ () {
-		++s8;
-		return *this;
-	}
-
-	Value& operator -- () {
-		--s8;
-		return *this;
-	}
+	bool operator == (Value rhs);		// a == b
+	bool operator != (Value rhs);		// a != b
+	bool operator < (Value rhs);		// a < b
+	bool operator > (Value rhs);		// a > b
+	bool operator <= (Value rhs);		// a <= b
+	bool operator >= (Value rhs);		// a >= b
 
 };
 
-Value operator << (const Value& lhs, const Value& rhs) {
-	Value v = lhs;
-	v <<= rhs;
-	return v;
-}
-
-Value operator >> (const Value& lhs, const Value& rhs) {
-	Value v = lhs;
-	v >>= rhs;
-	return v;
-}

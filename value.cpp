@@ -198,6 +198,15 @@ void promote(Value& lhs, Value& rhs)
 
 } // anonymous namespace
 
+Value& Value::operator = (uint64_t rhs) { ull = rhs; type = Type::ull; return *this; }
+Value& Value::operator = (uint32_t rhs) { ui = rhs; type = Type::ui; return *this; }
+Value& Value::operator = (uint16_t rhs) { us = rhs; type = Type::us; return *this; }
+Value& Value::operator = (uint8_t rhs) { uc = rhs; type = Type::uc; return *this; }
+Value& Value::operator = (int64_t rhs) { sll = rhs; type = Type::sll; return *this; }
+Value& Value::operator = (int32_t rhs) { si = rhs; type = Type::si; return *this; }
+Value& Value::operator = (int16_t rhs) { ss = rhs; type = Type::ss; return *this; }
+Value& Value::operator = (int8_t rhs) { sc = rhs; type = Type::sc; return *this; }
+
 Value Value::Cast(Type nt)
 {
 	Value nv = *this;
