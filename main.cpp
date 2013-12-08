@@ -53,5 +53,7 @@ int main(int argc, char* argv[])
 	}
 
 	Verify(&exps[0], exps.size());
+
+	return 0;
 }
 

@@ -207,6 +207,10 @@ Value& Value::operator = (int32_t rhs) { si = rhs; type = Type::si; return *this
 Value& Value::operator = (int16_t rhs) { ss = rhs; type = Type::ss; return *this; }
 Value& Value::operator = (int8_t rhs) { sc = rhs; type = Type::sc; return *this; }
 
+Value& Value::operator = (long rhs)  { sl = rhs; type = Type::sl; return *this; }
+Value& Value::operator = (unsigned long rhs)  { ul = rhs; type = Type::ul; return *this; }
+
+
 Value Value::Cast(Type nt)
 {
 	Value nv = *this;

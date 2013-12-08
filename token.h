@@ -21,5 +21,5 @@ struct Token
 	size_t len;
 };
 
-const char* ExtractString(const Token* token, char* buff);
+char* ExtractString(const Token* token, char* buff);
 

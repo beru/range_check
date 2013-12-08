@@ -67,6 +67,8 @@ struct Value
 	Value& operator = (int32_t rhs);
 	Value& operator = (int16_t rhs);
 	Value& operator = (int8_t rhs);
+	Value& operator = (long rhs);
+	Value& operator = (unsigned long rhs);
 
 	Value Cast(Type nt);
 

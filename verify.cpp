@@ -10,6 +10,8 @@
 #include "value.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
+#include "integer_literal_scan.h"
+#include <limits>
 
 struct Identifier
 {
@@ -24,6 +26,33 @@ struct Identifier
 
 	const Token* type;
 	const Token* id;
+};
+
+template <typename... Args>
+struct castInt;
+
+template <typename First>
+struct castInt<First>
+{
+	castInt(Value& v, boost::multiprecision::cpp_int& ival) {
+		if (ival <= std::numeric_limits<First>::max()) {
+			v = static_cast<First>(ival);
+		}else {
+			throw "integer literal too big.";
+		}
+	}
+};
+
+template <typename First, typename... Rest>
+struct castInt<First, Rest...>
+{
+	castInt(Value& v, boost::multiprecision::cpp_int& ival) {
+		if (ival <= std::numeric_limits<First>::max()) {
+			v = static_cast<First>(ival);
+		}else {
+			castInt<Rest...> caster(v, ival);
+		}
+	}
 };
 
 struct Verifier
@@ -111,44 +140,94 @@ struct Verifier
 		case TokenType::IntegerConstant:
 			{
 				char buff[256];
+				const char* pstr = ExtractString(node->token, buff);
+
+				const char* pstrOrg = pstr;
+				BaseType base = ScanBase(pstr);
+				int suffix = ScanSuffix(pstr);
+				buff[pstr - pstrOrg] = 0;
 				using namespace boost::multiprecision;
-				cpp_int num(ExtractString(node->token, buff));
+				cpp_int num(pstrOrg);
 				Value v;
-				if (num < 0) {
-					if (num < INT64_MIN) {
-						throw "number too small";
-					}else if (num < INT32_MIN) {
-						v = static_cast<int64_t>(num);
-					}else if (num < INT16_MIN) {
-						v = static_cast<int32_t>(num);
-					}else if (num < INT8_MIN) {
-						v = static_cast<int16_t>(num);
-					}else {
-						v = static_cast<int8_t>(num);
+				switch (base) {
+				case BaseType_Decimal:
+					switch (suffix) {
+					case Suffix_None:
+						castInt<
+							int,
+							long,
+							long long
+						>(v, num);
+						break;
+					case Suffix_Unsigned:
+						castInt<
+							unsigned int,
+							unsigned long,
+							unsigned long long
+						>(v, num);
+						break;
+					case Suffix_Long:
+						castInt<
+							long,
+							long long
+						>(v, num);
+						break;
+					case (Suffix_Unsigned | Suffix_Long):
+						castInt<
+							unsigned long,
+							unsigned long long
+						>(v, num);
+						break;
+					case Suffix_LongLong:
+						castInt<
+							long long
+						>(v, num);
+						break;
+					case (Suffix_Unsigned | Suffix_LongLong):
+						castInt<
+							unsigned long long
+						>(v, num);
+						break;
 					}
-				}else {
-					if (0) {
-					}else if (num > UINT64_MAX) {
-						throw "number too big";
-					}else if (num > INT64_MAX) {
-						v = static_cast<uint64_t>(num);
-					}else if (num > UINT32_MAX) {
-						v = static_cast<int64_t>(num);
-					}else if (num > INT32_MAX) {
-						v = static_cast<uint32_t>(num);
-					}else if (num > UINT16_MAX) {
-						v = static_cast<int32_t>(num);
-					}else if (num > INT16_MAX) {
-						v = static_cast<uint16_t>(num);
-					}else if (num > UINT8_MAX) {
-						v = static_cast<int16_t>(num);
-					}else if (num > INT8_MAX) {
-						v = static_cast<uint8_t>(num);
-					}else {
-						v = static_cast<int8_t>(num);
+					break;
+				case BaseType_Hexadecimal:
+				case BaseType_Octal:
+					switch (suffix) {
+					case Suffix_None:
+						castInt<
+							int, unsigned int,
+							long, unsigned long,
+							long long, unsigned long long
+						>(v, num);
+						break;
+					case Suffix_Unsigned:
+						castInt<
+							unsigned int,
+							unsigned long,
+							unsigned long long
+						>(v, num);
+						break;
+					case Suffix_Long:
+						castInt<
+							long, unsigned long,
+							long long, unsigned long long
+						>(v, num);
+						break;
+					case (Suffix_Unsigned | Suffix_Long):
+					case Suffix_LongLong:
+						castInt<
+							unsigned long,
+							unsigned long long
+						>(v, num);
+						break;
+					case (Suffix_Unsigned | Suffix_LongLong):
+						castInt<
+							unsigned long long
+						>(v, num);
+						break;
 					}
+					break;
 				}
-				// check integer suffix
 				return v;
 			}
 			break;
