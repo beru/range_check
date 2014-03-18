@@ -209,11 +209,14 @@ public:
 						);
 	}
 	Node* mult(const Token*& ts) {
-		return makeNode(&Parser::unary, ts,
+		return makeNode(&Parser::cast, ts,
 						TokenType::Mul,
 						TokenType::Div,
 						TokenType::Mod
 						);
+	}
+	Node* cast(const Token*& ts) {
+		return unary(ts);
 	}
 	Node* unary(const Token*& ts) {
 		switch (ts->type) {

@@ -72,9 +72,9 @@ struct Value
 
 	Value Cast(Type nt);
 
-	Value& operator = (Value rhs);		// a = b
 	Value operator - (void);			// -a
 
+	Value& assign(Value rhs);			// a = b
 	Value& operator += (Value rhs);		// a += b
 	Value& operator -= (Value rhs);		// a -= b
 	Value& operator *= (Value rhs);		// a *= b

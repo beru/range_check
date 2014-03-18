@@ -78,6 +78,35 @@ struct Verifier
 		id.byteSize = 0;
 		id.type = node->type;
 		id.id = node->id;
+		id.value.ull = 0;
+		switch (id.type->type) {
+		case TokenType::S1:
+			id.value.type = Value::Type::sc;
+			break;
+		case TokenType::S2:
+			id.value.type = Value::Type::ss;
+			break;
+		case TokenType::S4:
+			id.value.type = Value::Type::si;
+			break;
+		case TokenType::S8:
+			id.value.type = Value::Type::sl;
+			break;
+		case TokenType::U1:
+			id.value.type = Value::Type::uc;
+			break;
+		case TokenType::U2:
+			id.value.type = Value::Type::us;
+			break;
+		case TokenType::U4:
+			id.value.type = Value::Type::ui;
+			break;
+		case TokenType::U8:
+			id.value.type = Value::Type::ul;
+			break;
+		default:
+			break;
+		}
 		char buff[256];
 		ExtractString(node->id, buff);
 		if (!findId(buff)) {
@@ -88,7 +117,7 @@ struct Verifier
 		Value& lhs = getValue(node->id);
 		if (node->rhs) {
 			Value rhs = Verify(node->rhs);
-			lhs = rhs;
+			lhs.assign(rhs);
 		}
 		return lhs;
 	}
@@ -100,6 +129,7 @@ struct Verifier
 		Value& lhs = getValue(node->id);
 		Value rhs = Verify(node->rhs);
 		switch (node->op->type) {
+		case TokenType::Assign:				return lhs.assign(rhs);
 		case TokenType::AddAssign:			return lhs += rhs;
 		case TokenType::SubAssign:			return lhs -= rhs;
 		case TokenType::MulAssign:			return lhs *= rhs;

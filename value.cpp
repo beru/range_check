@@ -1,8 +1,14 @@
 
 #include "value.h"
 
+#include <limits>
 #include <type_traits>
 #include <new>
+
+#include <stdio.h>
+#include <boost/multiprecision/cpp_int.hpp>
+
+using namespace boost::multiprecision;
 
 namespace {
 
@@ -49,16 +55,25 @@ struct ValueBase
 };
 
 template<typename T> Value makeValue(T v);
-template<> Value makeValue<unsigned char>(unsigned char v) { Value ret(Value::Type::uc); ret.uc = v; return ret; }
-template<> Value makeValue<signed char>(signed char v) { Value ret(Value::Type::sc); ret.sc = v; return ret; }
-template<> Value makeValue<unsigned short>(unsigned short v) { Value ret(Value::Type::us); ret.us = v; return ret; }
-template<> Value makeValue<signed short>(signed short v) { Value ret(Value::Type::ss); ret.ss = v; return ret; }
-template<> Value makeValue<unsigned int>(unsigned int v) { Value ret(Value::Type::ui); ret.ui = v; return ret; }
-template<> Value makeValue<signed int>(signed int v) { Value ret(Value::Type::si); ret.si = v; return ret; }
-template<> Value makeValue<unsigned long>(unsigned long v) { Value ret(Value::Type::ul); ret.ul = v; return ret; }
-template<> Value makeValue<signed long>(signed long v) { Value ret(Value::Type::sl); ret.sl = v; return ret; }
-template<> Value makeValue<unsigned long long>(unsigned long long v) { Value ret(Value::Type::ull); ret.ull = v; return ret; }
-template<> Value makeValue<signed long long>(signed long long v) { Value ret(Value::Type::sll); ret.sll = v; return ret; }
+template<> Value makeValue<unsigned char>(unsigned char v)				{ Value ret(Value::Type::uc); ret.uc = v; return ret; }
+template<> Value makeValue<signed char>(signed char v)					{ Value ret(Value::Type::sc); ret.sc = v; return ret; }
+template<> Value makeValue<unsigned short>(unsigned short v)			{ Value ret(Value::Type::us); ret.us = v; return ret; }
+template<> Value makeValue<signed short>(signed short v)				{ Value ret(Value::Type::ss); ret.ss = v; return ret; }
+template<> Value makeValue<unsigned int>(unsigned int v)				{ Value ret(Value::Type::ui); ret.ui = v; return ret; }
+template<> Value makeValue<signed int>(signed int v)					{ Value ret(Value::Type::si); ret.si = v; return ret; }
+template<> Value makeValue<unsigned long>(unsigned long v)				{ Value ret(Value::Type::ul); ret.ul = v; return ret; }
+template<> Value makeValue<signed long>(signed long v)					{ Value ret(Value::Type::sl); ret.sl = v; return ret; }
+template<> Value makeValue<unsigned long long>(unsigned long long v)	{ Value ret(Value::Type::ull); ret.ull = v; return ret; }
+template<> Value makeValue<signed long long>(signed long long v)		{ Value ret(Value::Type::sll); ret.sll = v; return ret; }
+
+cpp_int to_cpp_int(const ValueBase& v)
+{
+	if (v.isSignedType()) {
+		return v.getSLL();
+	}else {
+		return v.getULL();
+	}
+}
 
 template <typename T>
 struct ValueTemplate : public ValueBase
@@ -67,25 +82,56 @@ struct ValueTemplate : public ValueBase
 	ValueTemplate(T& v) : v(v) {}
 
 	T toT(ValueBase& rhs) {
-		return (T)(rhs.isSignedType() ? rhs.getSLL() : rhs.getULL());
+		const T minV = std::numeric_limits<T>::min();
+		const T maxV = std::numeric_limits<T>::max();
+		if (rhs.isSignedType()) {
+			long long rv = rhs.getSLL();
+			if (rv < minV) {
+				printf("underflow %lld\n", rv);
+			}else if (maxV < rv) {
+				printf("overflow %lld\n", rv);
+			}
+			return rv;
+		}else {
+			unsigned long long rv = rhs.getULL();
+			cpp_int rv2(rv);
+			if (rv2 < minV) {
+				printf("underflow %llu\n", rv);
+			}else if (maxV < rv2) {
+				printf("overflow %llu\n", rv);
+			}
+			return rv;
+		}
+	}
+
+	void set(const cpp_int& cppv)
+	{
+		const T minV = std::numeric_limits<T>::min();
+		const T maxV = std::numeric_limits<T>::max();
+		if (cppv < minV) {
+			std::cout << "underflow " << cppv << std::endl;
+		}else if (maxV < cppv) {
+			std::cout << "overflow " << cppv << std::endl;
+		}
+		v = static_cast<T>(cppv);
 	}
 
 	virtual ValueBase& operator = (ValueBase& rhs) { v = toT(rhs); return *this; }
 	virtual Value operator - (void) { Value ret = makeValue(-v); return ret; }
 
-	virtual ValueBase& operator += (ValueBase& rhs) { v += toT(rhs); return *this; }
-	virtual ValueBase& operator -= (ValueBase& rhs) { v -= toT(rhs); return *this; }
-	virtual ValueBase& operator *= (ValueBase& rhs) { v *= toT(rhs); return *this; }
-	virtual ValueBase& operator /= (ValueBase& rhs) { v /= toT(rhs); return *this; }
-	virtual ValueBase& operator %= (ValueBase& rhs) { v %= toT(rhs); return *this; }
+	virtual ValueBase& operator += (ValueBase& rhs) { set(v + to_cpp_int(rhs)); return *this; }
+	virtual ValueBase& operator -= (ValueBase& rhs) { set(v - to_cpp_int(rhs)); return *this; }
+	virtual ValueBase& operator *= (ValueBase& rhs) { set(v * to_cpp_int(rhs)); return *this; }
+	virtual ValueBase& operator /= (ValueBase& rhs) { set(v / to_cpp_int(rhs)); return *this; }
+	virtual ValueBase& operator %= (ValueBase& rhs) { set(v % to_cpp_int(rhs)); return *this; }
 	virtual ValueBase& operator |= (ValueBase& rhs) { v |= toT(rhs); return *this; }
 	virtual ValueBase& operator &= (ValueBase& rhs) { v &= toT(rhs); return *this; }
 	virtual ValueBase& operator ^= (ValueBase& rhs) { v ^= toT(rhs); return *this; }
-	virtual ValueBase& operator <<= (ValueBase& rhs) { v <<= toT(rhs); return *this; }
-	virtual ValueBase& operator >>= (ValueBase& rhs) { v >>= toT(rhs); return *this; }
-	virtual ValueBase& operator ++ (void) { ++v; return *this; }
+	virtual ValueBase& operator <<= (ValueBase& rhs) { v <<= rhs.getSLL(); return *this; }
+	virtual ValueBase& operator >>= (ValueBase& rhs) { v >>= rhs.getSLL(); return *this; }
+	virtual ValueBase& operator ++ (void) { set(cpp_int(v) + 1); return *this; }
 	virtual Value operator ++ (int) { Value ret = makeValue(v); v++; return ret; }
-	virtual ValueBase& operator -- (void) { --v; return *this; }
+	virtual ValueBase& operator -- (void) { set(cpp_int(v) - 1); return *this; }
 	virtual Value operator -- (int) { Value ret = makeValue(v); v--; return ret; }
 
 	virtual Value operator + (ValueBase& rhs) { return makeValue(v + (T)rhs.getSLL()); }
@@ -229,7 +275,7 @@ Value Value::Cast(Type nt)
 	return nv;
 }
 
-Value& Value::operator = (Value rhs) { newBase(0,*this) = newBase(1,rhs); return *this; }
+Value& Value::assign(Value rhs) { newBase(0,*this) = newBase(1,rhs); return *this; }
 Value Value::operator - (void) { Value ret = *this; promote(ret); return -newBase(0,ret); }
 
 Value& Value::operator += (Value rhs) { newBase(0,*this) += newBase(1,rhs); return *this; }
