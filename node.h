@@ -9,6 +9,7 @@ enum class NodeType {
 	Unary,
 	Binary,
 	Conditional,
+	Cast,
 };
 
 struct Node {
@@ -53,6 +54,11 @@ struct ConditionalNode : public NodeImpl<NodeType::Conditional> {
 	const Node* falseNode;
 };
 
+struct CastNode : public NodeImpl<NodeType::Cast> {
+	const Token* typeToken;
+	const Node* rhs;
+};
+
 union AnyNode {
 	NodeType type;
 	TokenNode token;
@@ -61,5 +67,6 @@ union AnyNode {
 	UnaryNode unary;
 	BinaryNode binary;
 	ConditionalNode conditional;
+	CastNode cast;
 };
 

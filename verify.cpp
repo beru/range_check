@@ -24,8 +24,8 @@ struct Identifier
 
 	Value value;
 
-	const Token* type;
-	const Token* id;
+	const Token* typeToken;
+	const Token* idToken;
 };
 
 template <typename... Args>
@@ -55,6 +55,30 @@ struct castInt<First, Rest...>
 	}
 };
 
+Value::Type TokenTypeToValueType(TokenType tt)
+{
+	switch (tt) {
+	case TokenType::S1:
+		return Value::Type::sc;
+	case TokenType::S2:
+		return Value::Type::ss;
+	case TokenType::S4:
+		return Value::Type::si;
+	case TokenType::S8:
+		return Value::Type::sl;
+	case TokenType::U1:
+		return Value::Type::uc;
+	case TokenType::U2:
+		return Value::Type::us;
+	case TokenType::U4:
+		return Value::Type::ui;
+	case TokenType::U8:
+		return Value::Type::ul;
+	default:
+		return Value::Type::unknown;
+	}
+}
+
 struct Verifier
 {
 	bool findId(const char* id) {
@@ -70,50 +94,25 @@ struct Verifier
 		return findId(buff);
 	}
 
+
+
 	Value Verify(const DeclareNode* node) {
 
 		Identifier id;
 		id.isConstant = false;
 		id.isPointer = false;
 		id.byteSize = 0;
-		id.type = node->type;
-		id.id = node->id;
+		id.typeToken = node->type;
+		id.idToken = node->id;
 		id.value.ull = 0;
 		// TODO: to support typedef
-		switch (id.type->type) {
-		case TokenType::S1:
-			id.value.type = Value::Type::sc;
-			break;
-		case TokenType::S2:
-			id.value.type = Value::Type::ss;
-			break;
-		case TokenType::S4:
-			id.value.type = Value::Type::si;
-			break;
-		case TokenType::S8:
-			id.value.type = Value::Type::sl;
-			break;
-		case TokenType::U1:
-			id.value.type = Value::Type::uc;
-			break;
-		case TokenType::U2:
-			id.value.type = Value::Type::us;
-			break;
-		case TokenType::U4:
-			id.value.type = Value::Type::ui;
-			break;
-		case TokenType::U8:
-			id.value.type = Value::Type::ul;
-			break;
-		default:
-			break;
-		}
+		id.value.type = TokenTypeToValueType(id.typeToken->type);
 		char buff[256];
 		ExtractString(node->id, buff);
 		if (!findId(buff)) {
 			ids[buff] = id;
 		}else {
-			errors.push_back("id overlap");
+			printf("id overlap\n");
 		}
 		Value& lhs = getValue(node->id);
 		if (node->rhs) {
@@ -125,7 +124,9 @@ struct Verifier
 
 	Value Verify(const AssignNode* node) {
 		if (!findId(node->id)) {
-			errors.push_back("id not found");
+			char buff[256];
+			ExtractString(node->id, buff);
+			printf("id %s not found\n", buff);
 		}
 		Value& lhs = getValue(node->id);
 		Value rhs = Verify(node->rhs);
@@ -160,11 +161,19 @@ struct Verifier
 		return lhs;
 	}
 
+	Value Verify(const CastNode* node) {
+		Value ret = Verify(node->rhs);
+		ret.Cast(TokenTypeToValueType(node->typeToken->type));
+		return ret;
+	}
+
 	Value Verify(const TokenNode* node) {
 		switch (node->token->type) {
 		case TokenType::Identifier:
 			if (!findId(node->token)) {
-				errors.push_back("id not found");
+				char buff[256];
+				ExtractString(node->token, buff);
+				printf("id %s not found\n", buff);
 			}
 			return getValue(node->token);
 			break;
@@ -172,7 +181,6 @@ struct Verifier
 			{
 				char buff[256];
 				const char* pstr = ExtractString(node->token, buff);
-
 				const char* pstrOrg = pstr;
 				BaseType base = ScanBase(pstr);
 				int suffix = ScanSuffix(pstr);
@@ -272,6 +280,7 @@ struct Verifier
 		case NodeType::Binary:	return Verify((BinaryNode*)node);
 		case NodeType::Unary:	return Verify((UnaryNode*)node);
 		case NodeType::Token:	return Verify((TokenNode*)node);
+		case NodeType::Cast:	return Verify((CastNode*)node);
 		}
 	}
 
@@ -283,7 +292,6 @@ struct Verifier
 	}
 
 	std::map<std::string, Identifier> ids;
-	std::vector<std::string> errors;
 };
 
 void Verify(Node** nb, size_t cnt)

@@ -31,11 +31,13 @@ struct Value
 		ul = 8,
 		ull= 16,
 
-		sc = 1,
-		ss = 3,
-		si = 5,
-		sl = 9,
-		sll = 17,
+		sc = uc + 1,
+		ss = us + 1,
+		si = ui + 1,
+		sl = ul + 1,
+		sll = ull + 1,
+
+		unknown = -1,
 
 //		fl = 32,
 //		db = 64,

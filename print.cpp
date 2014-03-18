@@ -90,6 +90,9 @@ struct Printer
 		case NodeType::Token:
 			Print((TokenNode*)node);
 			break;
+		case NodeType::Cast:
+			Print((CastNode*)node);
+			break;
 		}
 	}
 

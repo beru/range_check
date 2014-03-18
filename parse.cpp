@@ -33,6 +33,22 @@ private:
 		return nd;
 	}
 
+	bool isTypeToken(const Token* ts) {
+		// TODO: support typedef
+		switch (ts->type) {
+		case TokenType::S1:
+		case TokenType::S2:
+		case TokenType::S4:
+		case TokenType::S8:
+		case TokenType::U1:
+		case TokenType::U2:
+		case TokenType::U4:
+		case TokenType::U8:
+			return true;
+		default:
+			return false;
+		}
+	}
 
 public:
 	AnyNode* nodes;
@@ -216,6 +232,18 @@ public:
 						);
 	}
 	Node* cast(const Token*& ts) {
+		if (ts->type == TokenType::LeftParentthesis) {
+			const Token* type = ts + 1;
+			if (isTypeToken(type)) {
+				const Token* rp = type + 1;
+				if (rp->type == TokenType::RightParenthesis) {
+					CastNode* pRet = newNode<CastNode>();
+					pRet->typeToken = type;
+					pRet->rhs = cast(ts += 3);
+					return pRet;
+				}
+			}
+		}
 		return unary(ts);
 	}
 	Node* unary(const Token*& ts) {
