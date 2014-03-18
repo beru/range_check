@@ -79,6 +79,7 @@ struct Verifier
 		id.type = node->type;
 		id.id = node->id;
 		id.value.ull = 0;
+		// TODO: to support typedef
 		switch (id.type->type) {
 		case TokenType::S1:
 			id.value.type = Value::Type::sc;

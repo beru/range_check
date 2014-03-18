@@ -27,14 +27,18 @@ int main(int argc, char* argv[])
 	std::vector<Token> tokens;
 	Token t;
 	const char* ps = 0;
+	bool needsToSetLength = false;
 	do {
 		t.str = buf;
 		t.type = Scan(buf, buf+text.size());
-		if (tokens.size())
+		if (needsToSetLength) {
 			tokens.back().len = t.str - ps;
+			needsToSetLength = false;
+		}
 		ps = t.str;
 		if (t.type != TokenType::WhiteSpace) {
 			tokens.push_back(t);
+			needsToSetLength = true;
 			printf("%s\n", ToString(t.type));
 		}
 	}while (t.type != TokenType::EndOfString);
