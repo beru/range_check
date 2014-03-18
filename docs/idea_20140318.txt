@@ -1,0 +1,15 @@
+
+S4 a = 100 + arg0;
+
+// multiple use of same value
+
+a += arg1;
+a -= arg2;
+a *= arg1;
+
+memorize used values to avoid inconsistancy
+
+track value ranges of variables through statements
+
+a = b * c + d
+
