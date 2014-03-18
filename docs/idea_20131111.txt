@@ -20,7 +20,11 @@ Sub
 	z = x - C
 		z.t = x.t - C
 		z.b = x.b - C
-
+	
+	z = C - x
+		z.t = C - x.
+		z.b = C - x.
+	
 	z = x - y
 		z.t = x.t - y.b
 		z.b = x.b - y.t
@@ -96,6 +100,18 @@ Div
 			z.t = x.b / C						# negative scale
 			z.b = x.t / C
 	
+	z = C / x
+		if x.t == 0 && x.b == 0
+			zero division !!
+		elif C == 0
+			z.t = 0
+			z.b = 0
+		elif x.b > 0
+			z.t = C / 
+			z.b = C / 
+		elif x.t < 0
+			z.t = C / 
+			z.b = C / 
 	
 	z = x / y
 		if x.t == 0 && x.b == 0
