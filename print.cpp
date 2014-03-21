@@ -17,18 +17,29 @@ const char* extractString(const Token* token, char* buff)
 
 struct Printer
 {
-	void Print(const Token* token) {
+private:
+	void print(const char* str) {
 		for (size_t i=0; i<depth; ++i) putchar('\t');
-		printf("%s", ToString(token->type));
-		char buff[128];
+		puts(str);
+	}
+	void Print(const Token* token) {
+		char buff[256];
+		sprintf(buff, "%s", ToString(token->type));
+		char buff2[256];
+		char buff3[128];
 		switch (token->type) {
 		case TokenType::IntegerConstant:
 		case TokenType::Identifier:
-			printf(" %s", extractString(token, buff));
+			sprintf(buff2, " %s", extractString(token, buff3));
+			break;
+		default:
+			*buff2 = 0;
 			break;
 		}
-		puts("");
+		strcat(buff, buff2);
+		print(buff);
 	}
+public:
 
 	void Print(const TokenNode* node) {
 		Print(node->token);
@@ -68,6 +79,16 @@ struct Printer
 			Print(node->id);
 		--depth;
 		Print(node->type);
+		++depth;
+			Print(node->rhs);
+		--depth;
+	}
+
+	void Print(const CastNode* node) {
+		++depth;
+			Print(node->typeToken);
+		--depth;
+		print("Cast");
 		++depth;
 			Print(node->rhs);
 		--depth;
